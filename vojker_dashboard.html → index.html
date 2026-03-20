@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vojker™ Client Dashboard</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0a0a0f; color: #e0e0e8; min-height: 100vh; }
+
+  .header { background: #0f0f1a; border-bottom: 1px solid #1e1e3a; padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; }
+  .logo { font-size: 22px; font-weight: 700; letter-spacing: 2px; color: #7c6af7; }
+  .logo span { color: #e0e0e8; font-weight: 300; }
+  .status-bar { display: flex; gap: 20px; font-size: 12px; }
+  .status-item { display: flex; align-items: center; gap: 6px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; animation: pulse 2s infinite; }
+  .dot.amber { background: #f59e0b; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; padding: 24px 32px; }
+  .card { background: #0f0f1a; border: 1px solid #1e1e3a; border-radius: 12px; padding: 24px; }
+  .card-title { font-size: 11px; letter-spacing: 2px; color: #6060a0; text-transform: uppercase; margin-bottom: 12px; }
+  .card-value { font-size: 32px; font-weight: 700; font-family: 'Courier New', monospace; }
+  .card-sub { font-size: 12px; color: #6060a0; margin-top: 6px; }
+
+  .pack-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; padding: 0 32px 24px; }
+  .pack { background: #0f0f1a; border: 1px solid #1e1e3a; border-radius: 12px; overflow: hidden; }
+  .pack-header { padding: 16px 20px; border-bottom: 1px solid #1e1e3a; display: flex; justify-content: space-between; align-items: center; }
+  .pack-name { font-size: 14px; font-weight: 600; letter-spacing: 1px; }
+  .pack-badge { font-size: 10px; padding: 3px 10px; border-radius: 20px; font-weight: 600; letter-spacing: 1px; }
+  .badge-green  { background: #052a10; color: #22c55e; border: 1px solid #166534; }
+  .badge-red    { background: #2a0505; color: #ef4444; border: 1px solid #991b1b; }
+  .badge-amber  { background: #2a1a05; color: #f59e0b; border: 1px solid #92400e; }
+  .badge-purple { background: #130a2a; color: #a78bfa; border: 1px solid #4c1d95; }
+
+  .pack-body { padding: 20px; }
+  .metric { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #1a1a2e; }
+  .metric:last-child { border-bottom: none; }
+  .metric-label { font-size: 12px; color: #6060a0; }
+  .metric-value { font-size: 13px; font-family: 'Courier New', monospace; font-weight: 600; }
+  .metric-value.green  { color: #22c55e; }
+  .metric-value.red    { color: #ef4444; }
+  .metric-value.amber  { color: #f59e0b; }
+  .metric-value.purple { color: #a78bfa; }
+  .metric-value.gray   { color: #9090b0; }
+
+  .binary-display { background: #080810; border: 1px solid #1e1e3a; border-radius: 8px; padding: 12px 16px; margin-top: 14px; font-family: 'Courier New', monospace; font-size: 13px; }
+  .binary-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .binary-label { color: #4040a0; font-size: 11px; }
+  .binary-bits { color: #7c6af7; letter-spacing: 3px; }
+  .binary-hex   { color: #22c55e; }
+
+  .confidence-bar { height: 4px; background: #1e1e3a; border-radius: 2px; margin-top: 12px; overflow: hidden; }
+  .confidence-fill { height: 100%; border-radius: 2px; transition: width 1s ease; }
+
+  .improvement { display: flex; align-items: center; gap: 6px; margin-top: 10px; font-size: 12px; color: #6060a0; }
+  .improvement .arrow { color: #22c55e; font-size: 14px; }
+  .improvement .arrow.down { color: #ef4444; }
+
+  .footer { padding: 16px 32px; border-top: 1px solid #1e1e3a; display: flex; justify-content: space-between; font-size: 11px; color: #4040a0; }
+  .tagline { color: #7c6af7; letter-spacing: 1px; }
+
+  .section-label { padding: 0 32px 12px; font-size: 11px; letter-spacing: 2px; color: #4040a0; text-transform: uppercase; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">VOJKER<span>™</span></div>
+  <div class="status-bar">
+    <div class="status-item"><div class="dot"></div><span>Quantum engine active</span></div>
+    <div class="status-item"><div class="dot amber"></div><span>JAX ready — Thor pending</span></div>
+    <div class="status-item"><div class="dot"></div><span>Binary layer running</span></div>
+    <div class="status-item" id="clock" style="color:#6060a0"></div>
+  </div>
+</div>
+
+<!-- KPI ROW -->
+<div class="grid" style="padding-bottom:8px">
+  <div class="card">
+    <div class="card-title">Total Q-improvement</div>
+    <div class="card-value" style="color:#7c6af7">+6.2186</div>
+    <div class="card-sub">Across all packs · this run</div>
+  </div>
+  <div class="card">
+    <div class="card-title">Clients served today</div>
+    <div class="card-value" style="color:#22c55e">3</div>
+    <div class="card-sub">BESS · Crypto · 10Bytes</div>
+  </div>
+  <div class="card">
+    <div class="card-title">System state</div>
+    <div class="card-value" style="color:#22c55e;font-size:20px;margin-top:6px">SELF-IMPROVING</div>
+    <div class="card-sub">Binary: 11111100 · 0xFC · 99%</div>
+  </div>
+</div>
+
+<div class="section-label">Decision Packs — Live Results</div>
+
+<div class="pack-grid">
+
+  <!-- BESS PACK -->
+  <div class="pack">
+    <div class="pack-header">
+      <div class="pack-name" style="color:#22c55e">BESS Decision Pack</div>
+      <div class="pack-badge badge-green">DISCHARGE</div>
+    </div>
+    <div class="pack-body">
+      <div class="metric">
+        <span class="metric-label">Client</span>
+        <span class="metric-value gray">Grid Operator Alpha</span>
+      </div>
+      <div class="metric">
+        <span class="metric-label">Action</span>
+        <span class="metric-value green">DISCHARGE</span>
+      </div>
+      <div class="metric">
+        <span class="metric-label">Rationale</span>
+        <span class="metric-value amber" style="font-size:11px">Sell energy — peak window</span>
+      </div>
+      <div class="metric">
+        <span class="metric-label">Confidence</span>
+        <span class="metric-value green">99%</span>
+      </div>
+      <div class="metric">
+        <span class="metric-label">Q-improvement</span>
+        <span class="metric-value purple">+2.4373</span>
+      </div>
+      <div class="binary-display">
+        <div class="binary-row">
+          <span class="binary-label">BINARY</span>
+          <span class="binary-bits">1111 1100</span>
+        </div>
+        <div class="binary-row">
+          <span class="binary-label">HEX</span>
+          <span class="binary-hex">0xFC</span>
+          <span class="binary-label">DEC 252</span>
+        </div>
+      </div>
+      <div class="confidence-bar"><div class="confidence-fill" style="width:99%;background:#22c55e"></div></div>
+      <div class="improvement"><span class="arrow">↑</span> Self-improved +2.44 over baseline</div>
+    </div>
+  </div>
+
+  <!-- CRYPTO PACK -->
+  <div class="pack">
+    <div class="pack-header">
+      <div class="pack-name" style="color:#ef4444">Crypto Triage Pack</div>
+      <div class="pack-badge badge-red">HIGH RISK</div>
+    </div>
+    <div class="pack-body">
+      <div class="metric">
+        <span class="metric-label">Client</span>
+        <span class="metric-value gray">Fund Manager Beta</span>
+      </div>
+      <div class="metric">
+        <span class="metric-label">Risk level</span>
+        <span class="metric-value red">HIGH RISK</span>
+      </div>
+      <div class="metric">
+        <span class="metric-label">Action</span>
+        <span class="metric-value amber">REDUCE</span>
+      </div>
+      <div class="metric">
+        <span class="metric-label">Confidence</span>
+        <span class="metric-value green">99%</span>
+      </div>
+      <div class="metric">
+        <span class="metric-label">Q-improvement</span>
+        <span class="metric-value purple">+2.4373</span>
+      </div>
+      <div class="binary-display">
+        <div class="binary-row">
+          <span class="binary-label">BINARY</span>
+          <span class="binary-bits">1111 1100</span>
+        </div>
+        <div class="binary-row">
+          <span class="binary-label">HEX</span>
+          <span class="binary-hex">0xFC</span>
+          <span class="binary-label">DEC 252</span>
+        </div>
+      </div>
+      <div class="confidence-bar"><div class="confidence-fill" style="width:99%;background:#ef4444"></div></div>
+      <div class="improvement"><span class="arrow">↑</span> Self-improved +2.44 over baseline</div>
+    </div>
+  </div>
+
+  <!-- 10BYTES PACK -->
+  <div class="pack">
+    <div class="pack-header">
+      <div class="pack-name" style="color:#a78bfa">10Bytes Pack</div>
+      <div class="pack-badge badge-purple">STRONG SIGNAL</div>
+    </div>
+    <div class="pack-body">
+      <div class="metric">
+        <span class="metric-label">Client</span>
+        <span class="metric-value gray">Systems Analyst Gamma</span>
+      </div>
+      <div class="metric">
+        <span class="metric-label">Signal</span>
+        <span class="metric-value purple">STRONG POSITIVE</span>
+      </div>
+      <div class="metric">
+        <span class="metric-label">Compression</span>
+        <span class="metric-value amber" style="font-size:11px">64 bits → 1 insight byte</span>
+      </div>
+      <div class="metric">
+        <span class="metric-label">Confidence</span>
+        <span class="metric-value green">99%</span>
+      </div>
+      <div class="metric">
+        <span class="metric-label">Q-improvement</span>
+        <span class="metric-value purple">+1.3218</span>
+      </div>
+      <div class="binary-display">
+        <div class="binary-row">
+          <span class="binary-label">BINARY</span>
+          <span class="binary-bits">1111 1100</span>
+        </div>
+        <div class="binary-row">
+          <span class="binary-label">HEX</span>
+          <span class="binary-hex">0xFC</span>
+          <span class="binary-label">DEC 252</span>
+        </div>
+      </div>
+      <div class="confidence-bar"><div class="confidence-fill" style="width:99%;background:#a78bfa"></div></div>
+      <div class="improvement"><span class="arrow">↑</span> Self-improved +1.32 over baseline</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- SYSTEM STATUS -->
+<div class="section-label">System Status</div>
+<div class="grid" style="padding-top:0">
+  <div class="card">
+    <div class="card-title">Quantum engine</div>
+    <div class="metric"><span class="metric-label">PennyLane</span><span class="metric-value green">v0.44.1 active</span></div>
+    <div class="metric"><span class="metric-label">QAOA</span><span class="metric-value green">running</span></div>
+    <div class="metric"><span class="metric-label">QNN</span><span class="metric-value green">running</span></div>
+    <div class="metric"><span class="metric-label">VQE</span><span class="metric-value green">running</span></div>
+  </div>
+  <div class="card">
+    <div class="card-title">JAX + edge</div>
+    <div class="metric"><span class="metric-label">JAX detection</span><span class="metric-value amber">standby</span></div>
+    <div class="metric"><span class="metric-label">Jetson Thor</span><span class="metric-value amber">pending deploy</span></div>
+    <div class="metric"><span class="metric-label">JIT compile</span><span class="metric-value amber">activates on Thor</span></div>
+    <div class="metric"><span class="metric-label">GPU speedup</span><span class="metric-value amber">10-100x on Thor</span></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Binary foundation</div>
+    <div class="metric"><span class="metric-label">Encoding</span><span class="metric-value green">active</span></div>
+    <div class="metric"><span class="metric-label">Output format</span><span class="metric-value purple">bin · hex · dec</span></div>
+    <div class="metric"><span class="metric-label">Last output</span><span class="metric-value green">11111100 · 0xFC</span></div>
+    <div class="metric"><span class="metric-label">Self-improving</span><span class="metric-value green">every run</span></div>
+  </div>
+</div>
+
+<div class="footer">
+  <span>VOJKER™ Client Dashboard · Quantum-Binary Decision Intelligence</span>
+  <span class="tagline">Binary foundation. Quantum intelligence. JAX speed. Edge delivery.</span>
+</div>
+
+<script>
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('clock').textContent =
+      now.toLocaleTimeString() + ' · ' + now.toLocaleDateString();
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+</script>
+</body>
+</html>
